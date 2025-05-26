@@ -1,87 +1,81 @@
 const int pressurePin = A1;  // Analog input pin for the pressure sensor
 const int airflowPin = A0;   // Analog input pin for the airflow sensor
 
-const int sensorMinValue = 204;  // Corresponds to 1V (1/5 * 1023)
-const int sensorMaxValue = 1023; // Corresponds to 5V (5/5 * 1023)
-
 const float minPressure = 0.0;   // Minimum pressure (0 MPa)
-const float maxPressure = 1.0;   // Maximum pressure (1 MPa)
+const float maxPressure = 10.0;  // Maximum pressure (10 Bar)
 
-int pressureOffset = 0;  // Offset for pressure sensor
-int airflowOffset = 0;   // Offset for airflow sensor
+const float minAirflow = 20.0;   // Minimum airflow (20 L/min)
+const float maxAirflow = 200.0;  // Maximum airflow (200 L/min)
+
+// Calibration offsets (measured raw ADC values at 0 pressure/flow)
+int pressureZero = 0;
+int airflowZero = 0;
+
+const int sensorMaxValue = 1023; // 5V
 
 void setup() {
-
-  Serial.begin(9600);     // Start serial communication
-  calibrateSensors();     // Calibrate sensors at startup
-
+  Serial.begin(9600);
+  calibrateSensors();
 }
 
 void loop() {
-
   // Read raw sensor values
+  int pressureRaw = analogRead(pressurePin);
+  int airflowRaw = analogRead(airflowPin);
 
-  float airflowValue = analogRead(airflowPin);
-  float pressureValue = analogRead(pressurePin);
+  // Apply calibration: shift raw values so zero point matches zero pressure/flow
+  int pressureCorrected = pressureRaw - pressureZero;
+  int airflowCorrected = airflowRaw - airflowZero;
 
-  // Apply calibration offsets
+  // Map corrected values to physical quantities
+  float pressure = mapf(pressureCorrected, 0, sensorMaxValue - pressureZero, minPressure, maxPressure);
+  float airflow = mapf(airflowCorrected, 0, sensorMaxValue - airflowZero, minAirflow, maxAirflow);
 
-  airflowValue -= airflowOffset;
-  pressureValue -= pressureOffset;
-
-  // Map raw values to physical quantities
-
-  float pressure = mapf(pressureValue, sensorMinValue, sensorMaxValue, 0, 10);   // Pressure in Bar
-  float airflow = mapf(airflowValue, sensorMinValue, sensorMaxValue, 20, 200);   // Airflow in L/min
-
-  // Print values
-
-  Serial.print("Pressure Sensor Value: ");
-  Serial.print(pressureValue);
-  Serial.print("  Pressure: ");
+  // Print results
+  Serial.print("Pressure Raw: ");
+  Serial.print(pressureRaw);
+  Serial.print(" | Pressure Corrected: ");
+  Serial.print(pressureCorrected);
+  Serial.print(" | Pressure: ");
   Serial.print(pressure);
-  Serial.print(" Bar   ");
+  Serial.println(" Bar");
 
-  Serial.print("Airflow Sensor Value: ");
-  Serial.print(airflowValue);
-  Serial.print("  Airflow: ");
+  Serial.print("Airflow Raw: ");
+  Serial.print(airflowRaw);
+  Serial.print(" | Airflow Corrected: ");
+  Serial.print(airflowCorrected);
+  Serial.print(" | Airflow: ");
   Serial.print(airflow);
   Serial.println(" L/min");
 
-  delay(500);  // Read every 0.5 seconds
+  delay(500);
 }
 
 // Floating-point map function
-
 float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 // Calibration function
-
 void calibrateSensors() {
-  const int samples = 50;    // Number of samples for calibration
+  const int samples = 50;
   long pressureSum = 0;
   long airflowSum = 0;
 
-  Serial.println("Calibrating sensors...");
+  Serial.println("Calibrating sensors... Please keep the system at zero pressure and flow.");
 
   for (int i = 0; i < samples; i++) {
     pressureSum += analogRead(pressurePin);
     airflowSum += analogRead(airflowPin);
-    delay(10);  // Small delay between samples
+    delay(10);
   }
 
-  int pressureAverage = pressureSum / samples;
-  int airflowAverage = airflowSum / samples;
-
-  pressureOffset = pressureAverage - sensorMinValue;
-  airflowOffset = airflowAverage - sensorMinValue;
+  pressureZero = pressureSum / samples;
+  airflowZero = airflowSum / samples;
 
   Serial.println("Calibration complete:");
-  Serial.print("Pressure Offset = ");
-  Serial.println(pressureOffset);
-  Serial.print("Airflow Offset = ");
-  Serial.println(airflowOffset);
-  
+  Serial.print("Pressure Zero Point (ADC) = ");
+  Serial.println(pressureZero);
+  Serial.print("Airflow Zero Point (ADC) = ");
+  Serial.println(airflowZero);
 }
