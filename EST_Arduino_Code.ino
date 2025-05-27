@@ -1,7 +1,7 @@
 const int pressurePin = A1;  // Analog input pin for the pressure sensor
 const int airflowPin = A0;   // Analog input pin for the airflow sensor
 
-const float minPressure = 0.0;   // Minimum pressure (0 MPa)
+const float minPressure = 0.0;   // Minimum pressure (0 Bar)
 const float maxPressure = 10.0;  // Maximum pressure (10 Bar)
 
 const float minAirflow = 20.0;   // Minimum airflow (20 L/min)
@@ -11,7 +11,7 @@ const float maxAirflow = 200.0;  // Maximum airflow (200 L/min)
 int pressureZero = 0;
 int airflowZero = 0;
 
-const int sensorMaxValue = 1023; // 5V
+const int sensorMaxValue = 1023; // 5V ADC
 
 void setup() {
   Serial.begin(9600);
@@ -31,28 +31,17 @@ void loop() {
   float pressure = mapf(pressureCorrected, 0, sensorMaxValue - pressureZero, minPressure, maxPressure);
   float airflow = mapf(airflowCorrected, 0, sensorMaxValue - airflowZero, minAirflow, maxAirflow);
 
-  // Print results
-  Serial.print("Pressure Raw: ");
-  Serial.print(pressureRaw);
-  Serial.print(" | Pressure Corrected: ");
-  Serial.print(pressureCorrected);
-  Serial.print(" | Pressure: ");
+  // Print results: pressure in Bar, airflow in L/min
   Serial.print(pressure);
-  Serial.println(" Bar");
+  Serial.print(",");
+  Serial.println(airflow); // Add newline for MATLAB
 
-  Serial.print("Airflow Raw: ");
-  Serial.print(airflowRaw);
-  Serial.print(" | Airflow Corrected: ");
-  Serial.print(airflowCorrected);
-  Serial.print(" | Airflow: ");
-  Serial.print(airflow);
-  Serial.println(" L/min");
-
-  delay(500);
+  delay(500); // 2Hz sampling rate
 }
 
 // Floating-point map function
 float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
+  if (abs(in_max - in_min) < 0.0001) return out_min; // Prevent division by zero
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
@@ -67,7 +56,7 @@ void calibrateSensors() {
   for (int i = 0; i < samples; i++) {
     pressureSum += analogRead(pressurePin);
     airflowSum += analogRead(airflowPin);
-    delay(10);
+    delay(100);
   }
 
   pressureZero = pressureSum / samples;
