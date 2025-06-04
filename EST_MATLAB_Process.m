@@ -6,10 +6,10 @@ load('simulated_sensor_data.mat');  % Replace with correct .mat file if needed
 % Constants
 V_tank = 1e-3;       % [m^3]
 p_env = 101325;      % [Pa]
-theoretical_efficiency = 69;  % Replace with real value
+theoretical_efficiency = 99.5;  % Replace with real value
 
 % Sensor error values
-pressure_error_bar = 0.25;        % ±0.25 bar
+pressure_error_bar = 0.1;        % ±0.25 bar
 airflow_error_Lmin = 3.6;         % ±3.6 L/min
 
 % === Step 1: Filter Out Constant Plateaus ===
