@@ -10,7 +10,7 @@ This script runs on the Arduino and is responsible for real-time data acquisitio
 
 EST_MATLAB_Collect.m
 
-This MATLAB script connects to the Arduino over a specified serial port and records real-time sensor data streamed from the EST_Arduino_Collection.ino script. For a fixed duration, it parses each incoming line, converts pressure readings from bar to Pascals and airflow from liters per minute to cubic meters per second, and timestamps each sample using MATLAB’s internal clock. The script displays live data to the console and saves all recorded data—pressure, airflow, and time—into a .mat file named sensor_data.mat. This file serves as the input for the next phase: data processing and efficiency evaluation. The script ensures accurate and reproducible data collection during each experimental run.
+This MATLAB script connects to the Arduino over a specified serial port and records real-time sensor data streamed from the EST_Arduino_Collection.ino script. For a fixed duration, it parses each incoming line, converts pressure readings from bar to Pascals and airflow from liters per minute to cubic meters per second, and timestamps each sample using MATLAB’s internal clock. The script displays live data to the console and saves all recorded data—pressure, airflow, and time into a .mat file named sensor_data.mat. This file serves as the input for the next phase: data processing and efficiency evaluation. The script ensures accurate and reproducible data collection during each experimental run.
 
 EST_MATLAB_Process.m
 
