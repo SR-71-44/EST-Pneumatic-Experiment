@@ -12,6 +12,7 @@ const float maxAirflow = 200.0;
 const int sensorMaxValue = 1023; // 10-bit ADC resolution
 
 // === Insert your calibrated offsets here ===
+
 const int pressureZero = 69;  // <-- Replace with value from calibration script
 const int airflowZero = 69;   // <-- Replace with value from calibration script
 
@@ -39,6 +40,7 @@ void loop() {
 }
 
 // Floating-point map function
+
 float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
   if (abs(in_max - in_min) < 0.0001) return out_min;
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
